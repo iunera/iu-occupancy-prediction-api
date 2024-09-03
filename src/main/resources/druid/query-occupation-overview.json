@@ -1,0 +1,138 @@
+{
+	"intervals": [
+		"2023-01-01/2024-04-01"
+	],
+	"granularity": "all",
+	"virtualColumns": [
+    	{
+	      "type": "expression",
+	      "name": "overview_departure_time",
+	      "expression": "timestamp_format(__time,'HH:mm','Europe/Berlin')"
+    	},
+    	{
+	      "type": "expression",
+	      "name": "numeric_zonedHour",
+	      "expression": "parse_long(dayMeta_zonedHour)"
+    	}
+	],
+	"filter": {
+		"type": "and",
+		"fields": [
+			{
+				"type": "selector",
+				"dimension": "meta_alternateSources",
+				"value": ""
+			},
+			{
+				"type": "selector",
+				"dimension": "line_geoKeys",
+				"value": ":line_geoKey"
+			},
+			{
+				"type": "bound",
+				"dimension": "numeric_zonedHour",
+				"lower": ":time",
+				"ordering": "numeric"
+			},
+			{
+				"type": "selector",
+				"dimension": "dayMeta_daygroup",
+				"value": ":daygroup"
+			}
+		]
+	},
+	"context": {
+		"timeout": 120000,
+		"groupByStrategy": "v2"
+	},
+	"queryType": "groupBy",
+	"dataSource": "fahrbar-fused-v2",
+	"dimensions": [
+		"dayMeta_dailyRideStopKey",
+		"dayMeta_daygroup",
+		"line_name",
+		"line_geoKeys",
+		"stop_label",
+		"stop_geoKeys",
+		"line_transportProduct",
+		"dayMeta_zonedHour",
+		"overview_departure_time",
+		"meta_dataOrigin",
+		"line_direction"
+	],
+	"aggregations": [
+		{
+			"type": "doubleMin",
+			"name": "i_sum_vehicle_seats_min",
+			"fieldName": "i_sum_vehicle_seats"
+		},
+		{
+			"type": "doubleMin",
+			"name": "i_sum_vehicle_possibleStandingPassengers_min",
+			"fieldName": "i_sum_vehicle_possibleStandingPassengers"
+		},
+		{
+			"type": "doubleMax",
+			"name": "i_sum_vehicle_seats_max",
+			"fieldName": "i_sum_vehicle_seats"
+		},
+		{
+			"type": "doubleMax",
+			"name": "i_sum_vehicle_possibleStandingPassengers_max",
+			"fieldName": "i_sum_vehicle_possibleStandingPassengers"
+		},
+		{
+			"type": "doubleSum",
+			"name": "i_sum_occupationDeparture",
+			"fieldName": "i_sum_occupationDeparture"
+		},
+		{
+			"type": "count",
+			"name": "count",
+			"fieldName": "i_count"
+		},
+		{
+			"type": "doubleSum",
+			"name": "i_sum_entries",
+			"fieldName": "i_sum_entries"
+		},
+		{
+			"type": "doubleSum",
+			"name": "i_sum_exits",
+			"fieldName": "i_sum_exists"
+		},
+		{
+			"type": "doubleSum",
+			"name": "i_sum_occupationArrival",
+			"fieldName": "i_sum_occupationArrival"
+		},
+		{
+			"type": "quantilesDoublesSketch",
+			"name": "sketch",
+			"fieldName": "q_occupationDepartureDistribution",
+			"k": 128
+		}
+	],
+	"postAggregations": [
+		{
+			"type": "quantilesDoublesSketchToHistogram",
+			"name": "performance_sketch",
+			"field": {
+				"type": "fieldAccess",
+				"fieldName": "sketch"
+			},
+			"splitPoints": [
+				2,
+				4,
+				6,
+				8,
+				10,
+				12,
+				14,
+				16,
+				18,
+				20
+			]
+		}
+	]
+}

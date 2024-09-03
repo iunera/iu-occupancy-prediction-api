@@ -1,0 +1,98 @@
+{
+	"queryType": "groupBy",
+	"dataSource": "fahrbar-fused-v2",
+	"intervals": "2023-01-01T00Z/2024-01-01T00Z",
+	"granularity": "all",
+	"context": {
+		"timeout": 120000
+	},
+	"virtualColumns": [
+		{
+			"type": "expression",
+			"name": "overview_departure_time",
+			"expression": "timestamp_format(__time,'HH:mm','Europe/Berlin')"
+		}
+	],
+	"filter": {
+		"type": "and",
+		"fields": [
+			{
+				"type": "selector",
+				"dimension": "meta_alternateSources",
+				"value": ""
+			},
+			{
+				"type": "selector",
+				"dimension": "stop_geoKeys",
+				"value": ":stopId"
+			},
+			{ "type": "not", 
+			  "field": 
+    			{
+    				"type": "selector",
+    				"dimension": "line_name",
+    				"value": "UNKOWN"
+    			}
+			},
+			{
+				"type": "selector",
+				"dimension": "dayMeta_daygroup",
+				"value": "WEEKDAY"
+			}
+		]
+	},
+	"dimensions": [
+		"overview_departure_time",
+		"stop_label",
+		"dayMeta_zonedHour",
+		"stop_geoKeys",
+		"line_name",
+		"line_geoKeys",
+		"line_label",
+		"line_direction",
+		"line_transportProduct"
+	],
+	"aggregations": [
+		{
+			"name": "sum_i_sum_occupationDeparture",
+			"type": "doubleSum",
+			"fieldName": "i_sum_occupationDeparture"
+		},
+		{
+			"type": "quantilesDoublesSketch",
+			"name": "sketch",
+			"fieldName": "q_occupationDepartureDistribution",
+			"k": 128
+		}
+	],
+	"postAggregations": [
+		{
+			"type": "quantilesDoublesSketchToHistogram",
+			"name": "performance_sketch",
+			"field": {
+				"type": "fieldAccess",
+				"fieldName": "sketch"
+			},
+			"splitPoints": [
+				2,
+				4,
+				6,
+				8,
+				10,
+				12,
+				14,
+				16,
+				18,
+				20
+			]
+		}
+	],
+	"metric": {
+		"type": "inverted",
+		"metric": {
+			"type": "dimension",
+			"ordering": "lexicographic"
+		}
+	},
+	"threshold": 5
+}

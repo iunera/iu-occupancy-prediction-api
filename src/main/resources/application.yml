@@ -1,0 +1,5 @@
+spring:
+    cache:
+        cache-names: lastQueryResults
+        caffeine:
+            spec: maximumSize=700, expireAfterAccess=95m

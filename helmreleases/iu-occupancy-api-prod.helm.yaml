@@ -1,0 +1,65 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: iu-occupancy-api
+  namespace: fahrbar-prod
+spec:
+  releaseName: iu-occupancy-api
+  targetNamespace: fahrbar-prod
+  chart:
+    spec:
+      chart: springboot
+      version: ">=2.0.0"
+      sourceRef:
+        kind: HelmRepository
+        name: iunera-helm-charts
+        namespace: helmrepos
+  interval: 1m0s
+  install:
+    createNamespace: false
+
+  values:
+    image:
+      repository: iunera/iu-occupancy-api
+      tag: docker_image_tag
+      pullPolicy: IfNotPresent
+
+    containerPort: 8080
+    livenessProbePath: "/actuator/health"
+    readinessProbePath: "/actuator/health"
+
+    extraArgs:
+      - --server.port=8080
+      - --spring.application.name=iu-occupancy-api-prod
+      - --iunera.thisservice.domain=https://iu-occupancy-api.fahrbar.bapps.iunera.com
+      - --spring.data.mongodb.uri=${SPRING_DATA_MONGODB_URI}
+      - --iunera.druid.queryuser=${IUNERA_DRUID_QUERYUSER}
+      - --iunera.druid.querypassword=${IUNERA_DRUID_QUERYPASSWORD}
+      - --iunera.druid.queryendpoint=https://druid.k8s.iunera.com/druid/v2/
+    env:
+      - name: SPRING_DATA_MONGODB_URI
+        valueFrom:
+          secretKeyRef:
+            name: iu-occupancy-api-secrets
+            key: mongodb-uri
+      - name: IUNERA_DRUID_QUERYUSER
+        valueFrom:
+          secretKeyRef:
+            name: iu-occupancy-api-secrets
+            key: druid-user
+      - name: IUNERA_DRUID_QUERYPASSWORD
+        valueFrom:
+          secretKeyRef:
+            name: iu-occupancy-api-secrets
+            key: druid-password
+
+    affinity:
+      nodeAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 1
+          preference:
+            matchExpressions:
+            - key: role
+              operator: In
+              values:
+              - service-node

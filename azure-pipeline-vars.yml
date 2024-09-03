@@ -1,0 +1,5 @@
+variables:
+  docker_image_tag: dev-$(Build.BuildId)
+  parent_project_name: iu-publictransport
+  project_name: iu-occupancy-api
+  docker_image_name: iunera/$(project_name)
