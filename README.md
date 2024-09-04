@@ -14,3 +14,7 @@ Generally this project is not completely groomed and respresents a collection of
 In order to compile the code one needs to link the following required resources:
 - We thank the work on https://oeffi.schildbach.de/ / https://github.com/schildbach/public-transport-enabler that we used as library to integrate the EFA data. 
 - We thank the work on https://github.com/opendatalab-de/geojson-jackson that we use for defining Geojson structures.
+
+# License
+[Open Compensation Token License, Version 0.20](https://github.com/open-compensation-token-license/license/blob/main/LICENSE.md)
+
